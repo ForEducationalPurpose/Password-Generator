@@ -1,22 +1,46 @@
 #Projekt Passwortgenerator
+import os
 import random
+from cryptography.fernet import Fernet
 
 
+
+key_file = "secret.key"
+if not os.path.exists(key_file):
+ key = Fernet.generate_key()
+ with open (key_file, "wb") as f:
+  f.write(key)
+  print("key generated!")
+else:
+ with open (key_file, "rb") as f:
+  key = f.read()
+  print("secret key loaded!") 
+ 
+ 
+
+cipher = Fernet(key)
 
 def Generieren():
  random.seed()
+ platform = input("Platform: \n").encode("utf-8")
+ email = input("Deine Email: \n").encode("utf-8")
  Char = "abcdefghijklomnopqrstuvwxyzüöäABCDEFGHIJKLNOPKRSTUFWXYZ123456789!§$%&/())=?.,<?"
- Passwort = "".join(random.sample(Char,16))
- return Passwort
- 
-Passwort = str(Generieren())
+ passwort = "".join(random.sample(Char,16))
+ print("Das Passwort: ", passwort)
+ return passwort, platform, email
+
+passwort, platform, email = Generieren()
+print("Platform and Password: \n",platform , "\n", email,"\n", passwort)
+passwort = passwort.encode("utf-8")
 
 
 def Speichern():
- with open("Passwörter.txt", "a", encoding="utf-8") as datei:
-  Platform = str(input("Platform: \n"))
-  datei.write(Platform + "\n")
-  datei.write(Passwort + "\n")
+ token = cipher.encrypt(passwort)
+ token2 = cipher.encrypt(email)
+ with open("Passwords.txt", "ab") as f:
+  f.write(platform + b"\r\n")
+  f.write(token2 + b"\r\n")
+  f.write(token + b"\r\n")
 
 
 Speichern()
